@@ -1,0 +1,20 @@
+{
+  "name": "轻松闪光",
+  "short_name": "轻松闪光",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f2f2f7",
+  "theme_color": "#f2f2f7",
+  "icons": [
+    {
+      "src": "fl_192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "fl_512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
