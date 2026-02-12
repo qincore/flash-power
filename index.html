@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>闪光摄影助手</title>
+    <style>
+      :root {
+        --primary: #007aff;
+        --danger: #ff3b30;
+        --warning: #ff9500;
+        --success: #34c759;
+        --night: #5856d6;
+        --card-bg: #ffffff;
+      }
+      body {
+        font-family: -apple-system, sans-serif;
+        background: #f2f2f7;
+        margin: 0;
+        padding: 15px;
+        color: #1c1c1e;
+      }
+      .app-container {
+        max-width: 500px;
+        margin: auto;
+      }
+      .card {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        margin-bottom: 15px;
+      }
+      h1 {
+        font-size: 20px;
+        font-weight: 700;
+        margin: 0 0 15px 0;
+        text-align: center;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 15px;
+      }
+      label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #8e8e93;
+        margin-bottom: 4px;
+        text-transform: uppercase;
+      }
+      select,
+      input {
+        -webkit-appearance: none;
+        background: #f2f2f7;
+        border: none;
+        border-radius: 10px;
+        padding: 12px;
+        font-size: 16px;
+        color: #1c1c1e;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .result-panel {
+        background: #1c1c1e;
+        color: white;
+        border-radius: 18px;
+        padding: 25px;
+        text-align: center;
+        position: relative;
+      }
+      .power-label {
+        font-size: 13px;
+        color: #8e8e93;
+        margin-bottom: 5px;
+      }
+      .power-value {
+        font-size: 44px;
+        font-weight: 800;
+        color: var(--primary);
+      }
+      .badge-row {
+        margin-top: 10px;
+        display: flex;
+        justify-content: center;
+        gap: 5px;
+      }
+      .badge {
+        background: #3a3a3c;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 11px;
+      }
+
+      .status-light {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+
+      .msg-card {
+        padding: 15px;
+        font-size: 13px;
+        line-height: 1.5;
+        border-radius: 12px;
+        margin-top: 10px;
+        border-left: 4px solid #ccc;
+      }
+      .msg-safe {
+        background: #e8f5e9;
+        border-left-color: var(--success);
+      }
+      .msg-warn {
+        background: #fff3e0;
+        border-left-color: var(--warning);
+      }
+      .msg-danger {
+        background: #ffebee;
+        border-left-color: var(--danger);
+      }
+      .msg-night {
+        background: #f3f0ff;
+        border-left-color: var(--night);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <h1>闪光摄影助手</h1>
+
+      <div class="result-panel" id="resPanel">
+        <div id="statusLight" class="status-light"></div>
+        <div class="power-label">建议闪光输出 (M档)</div>
+        <div id="powerVal" class="power-value">1/4</div>
+        <div class="badge-row">
+          <span id="compVal" class="badge">90mm | 半身</span>
+          <span id="evVal" class="badge">EV 5.0</span>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: 15px">
+        <label>GN</label>
+            <input
+              type="number"
+              id="gn"
+              value="20"
+              step="1"
+              oninput="calc()"
+              style="margin-bottom: 15px;"
+            />
+        <div class="grid">
+          <div class="input-group">
+            <label>感光度</label>
+            <select id="iso" onchange="calc()">
+              <option value="50">50</option>
+              <option value="80">80</option>
+              <option value="100">100</option>
+              <option value="200" selected>200</option>
+              <option value="400">400</option>
+              <option value="800">800</option>
+              <option value="1600">1600</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>镜头焦距</label>
+            <select id="focal" onchange="calc()">
+              <option value="28">28</option>
+              <option value="35">35</option>
+              <option value="40">40</option>
+              <option value="50">50</option>
+              <option value="55">55</option>
+              <option value="70">70</option>
+              <option value="90" selected>90</option>
+              <option value="135">135</option>
+              <option value="180">180</option>
+              <option value="200">200</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div class="input-group">
+            <label>光圈</label>
+            <input
+              type="number"
+              id="apt"
+              value="2.5"
+              step="0.1"
+              oninput="calc()"
+            />
+          </div>
+          <div class="input-group">
+            <label>快门速度</label>
+            <select id="shutter" onchange="calc()">
+              <option value="8000">1/8000</option>
+              <option value="4000">1/4000</option>
+              <option value="2000">1/2000</option>
+              <option value="1000">1/1000</option>
+              <option value="500">1/500</option>
+              <option value="250">1/250</option>
+              <option value="125" selected>1/125</option>
+              <option value="60">1/60</option>
+              <option value="30">1/30</option>
+              <option value="15">1/15</option>
+              <option value="8">1/8</option>
+              <option value="4">1/4</option>
+              <option value="2">1/2</option>
+            </select>
+          </div>
+        </div>
+
+        <label
+          >拍摄距离:
+          <span id="distNum" style="color: var(--primary)">3.0</span> 米</label
+        >
+        <input
+          type="range"
+          id="dist"
+          min="0.8"
+          max="12"
+          step="0.1"
+          value="3"
+          oninput="calc()"
+          style="width: 100%; margin-bottom: 15px"
+        />
+
+        <label>环境场景 (背景亮度)</label>
+        <select id="weather" onchange="calc()">
+          <option value="16">烈日 (f/16)</option>
+          <option value="11">晴天 (f/11)</option>
+          <option value="8">多云 (f/8)</option>
+          <option value="5.6">阴天/室内明亮 (f/5.6)</option>
+          <option value="2.8">黄昏/室内弱光 (f/2.8)</option>
+          <option value="1.0" selected>夜景/极暗室内 (f/1.0)</option>
+        </select>
+      </div>
+
+      <div id="msgBox" class="msg-card">正在初始化...</div>
+    </div>
+
+    <script>
+      function calc() {
+        const gn = parseInt(document.getElementById("gn").value);
+        const iso = parseInt(document.getElementById("iso").value);
+        const focal = parseInt(document.getElementById("focal").value);
+        const apt = parseFloat(document.getElementById("apt").value);
+        const dist = parseFloat(document.getElementById("dist").value);
+        const shutter = parseInt(document.getElementById("shutter").value);
+        const weatherRef = parseFloat(document.getElementById("weather").value);
+
+        document.getElementById("distNum").innerText = dist.toFixed(1);
+
+        // 1. 闪光计算 (基准GN20@ISO100)
+        const currentGN = gn * Math.sqrt(iso / 100);
+        const ratio = Math.pow((apt * dist) / currentGN, 2);
+        const levels = [
+          { v: 0.7, t: "1/1" },
+          { v: 0.35, t: "1/2" },
+          { v: 0.18, t: "1/4" },
+          { v: 0.09, t: "1/8" },
+          { v: 0.045, t: "1/16" },
+          { v: 0.02, t: "1/32" },
+        ];
+        let power = ratio > 1.1 ? "功率不足" : "1/64";
+        for (let l of levels) {
+          if (ratio > l.v) {
+            power = l.t;
+            break;
+          }
+        }
+        document.getElementById("powerVal").innerText = power;
+
+        // 2. 构图判断
+        const viewW = (36 * dist) / focal;
+        const comp = viewW > 2 ? "全身" : viewW > 0.8 ? "半身" : "特写";
+        document.getElementById("compVal").innerText = `${focal}mm | ${comp}`;
+
+        // 3. 背景曝光逻辑
+        const msgBox = document.getElementById("msgBox");
+        const light = document.getElementById("statusLight");
+        const evDiff =
+          Math.log2(shutter / iso) + Math.log2(apt / weatherRef) * 2;
+        document.getElementById("evVal").innerText =
+          `偏差: ${evDiff > 0 ? "+" : ""}${evDiff.toFixed(1)} EV`;
+
+        if (weatherRef <= 1.4) {
+          // 夜景模式
+          light.style.background = "var(--night)";
+          if (shutter > 60) {
+            msgBox.className = "msg-card msg-night";
+            msgBox.innerHTML =
+              "🌙 <b>夜景模式</b><br>快门较快，背景可能全黑。建议调慢快门（如1/30s）以捕捉环境灯光。";
+          } else if (shutter < focal / 1.5) {
+            msgBox.className = "msg-card msg-warn";
+            msgBox.innerHTML = `⚠️ <b>长曝光警告</b><br>快门慢于安全值(1/${focal}s)。闪光会凝固人像，但背景灯光可能因手抖产生重影。`;
+          } else {
+            msgBox.className = "msg-card msg-safe";
+            msgBox.innerHTML =
+              "✅ <b>夜景平衡</b><br>环境灯光将得到保留，闪光灯负责凝固主体。";
+          }
+        } else if (evDiff < -1.5) {
+          // 过曝警告
+          light.style.background = "var(--danger)";
+          msgBox.className = "msg-card msg-danger";
+          msgBox.innerHTML = `❌ <b>背景将严重过曝！</b><br>当前环境太亮。建议缩快门至 1/${Math.round(iso * Math.pow(weatherRef / apt, 2))}s 或缩小光圈。`;
+        } else {
+          light.style.background = "var(--success)";
+          msgBox.className = "msg-card msg-safe";
+          msgBox.innerHTML =
+            "✅ <b>曝光平衡</b><br>主体与背景比例协调，胶片宽容度可覆盖。";
+        }
+      }
+      calc();
+    </script>
+  </body>
+</html>
