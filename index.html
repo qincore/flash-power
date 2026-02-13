@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="manifest.json" />
     <title>轻松闪光</title>
     <style>
       :root {
@@ -149,16 +149,11 @@
       </div>
 
       <div class="card" style="margin-top: 15px">
-        <label>GN</label>
-            <input
-              type="number"
-              id="gn"
-              value="20"
-              step="1"
-              oninput="calc()"
-              style="margin-bottom: 15px;"
-            />
         <div class="grid">
+          <div class="input-group">
+            <label>GN</label>
+            <input type="number" id="gn" value="20" step="1" oninput="calc()" />
+          </div>
           <div class="input-group">
             <label>感光度</label>
             <select id="iso" onchange="calc()">
@@ -186,15 +181,12 @@
               <option value="200">200</option>
             </select>
           </div>
-        </div>
-
-        <div class="grid">
           <div class="input-group">
             <label>光圈</label>
             <input
               type="number"
               id="apt"
-              value="2.5"
+              value="2.8"
               step="0.1"
               oninput="calc()"
             />
@@ -208,8 +200,8 @@
               <option value="1000">1/1000</option>
               <option value="500">1/500</option>
               <option value="250">1/250</option>
-              <option value="125" selected>1/125</option>
-              <option value="60">1/60</option>
+              <option value="125">1/125</option>
+              <option value="60" selected>1/60</option>
               <option value="30">1/30</option>
               <option value="15">1/15</option>
               <option value="8">1/8</option>
@@ -217,11 +209,22 @@
               <option value="2">1/2</option>
             </select>
           </div>
+          <div class="input-group">
+            <label>ND滤镜</label>
+            <select id="nd" onchange="calc()">
+              <option value="1">无滤镜</option>
+              <option value="2" selected>ND2 (-1 档)</option>
+              <option value="4">ND4 (-2 档)</option>
+              <option value="8">ND8 (-3 档)</option>
+              <option value="16">ND16 (-4 档)</option>
+              <option value="64">ND64 (-6 档)</option>
+            </select>
+          </div>
         </div>
 
         <label
           >拍摄距离:
-          <span id="distNum" style="color: var(--primary)">3.0</span> 米</label
+          <span id="distNum" style="color: var(--primary)">3</span> 米</label
         >
         <input
           type="range"
@@ -240,8 +243,8 @@
           <option value="11">晴天 (f/11)</option>
           <option value="8">多云 (f/8)</option>
           <option value="5.6">阴天/室内明亮 (f/5.6)</option>
-          <option value="2.8">黄昏/室内弱光 (f/2.8)</option>
-          <option value="1.0" selected>夜景/极暗室内 (f/1.0)</option>
+          <option value="2.8" selected>黄昏/室内弱光 (f/2.8)</option>
+          <option value="1.0">夜景/极暗室内 (f/1.0)</option>
         </select>
       </div>
 
@@ -249,8 +252,8 @@
     </div>
     <script>
       // 1. 注册 Service Worker
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
           // 直接把 SW 代码写成字符串，转成 Blob 注册，这样连 sw.js 文件都不用写
           const swCode = `
             self.addEventListener('install', e => {
@@ -260,7 +263,7 @@
               e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
             });
           `;
-          const blob = new Blob([swCode], { type: 'application/javascript' });
+          const blob = new Blob([swCode], { type: "application/javascript" });
           navigator.serviceWorker.register(URL.createObjectURL(blob));
         });
       }
@@ -274,25 +277,33 @@
         const dist = parseFloat(document.getElementById("dist").value);
         const shutter = parseInt(document.getElementById("shutter").value);
         const weatherRef = parseFloat(document.getElementById("weather").value);
+        const nd = parseInt(document.getElementById("nd").value);
 
         document.getElementById("distNum").innerText = dist.toFixed(1);
 
-        // 1. 闪光计算 (基准GN20@ISO100)
+        // 1. 闪光计算 (ISO100)
         const currentGN = gn * Math.sqrt(iso / 100);
-        const ratio = Math.pow((apt * dist) / currentGN, 2);
+        const ratio = Math.pow((apt * dist) / currentGN, 2) * nd;
         const levels = [
           { v: 0.7, t: "1/1" },
           { v: 0.35, t: "1/2" },
           { v: 0.18, t: "1/4" },
           { v: 0.09, t: "1/8" },
           { v: 0.045, t: "1/16" },
-          { v: 0.02, t: "1/32" },
+          { v: 0.022, t: "1/32" },
+          { v: 0.011, t: "1/64" },
+          { v: 0.0055, t: "1/128" },
+          { v: 0.0027, t: "1/256" },
         ];
-        let power = ratio > 1.1 ? "功率不足" : "1/64";
-        for (let l of levels) {
-          if (ratio > l.v) {
-            power = l.t;
-            break;
+        if (ratio > 1.1) {
+          power = "功率不足";
+        } else {
+          power = "1/256";
+          for (let l of levels) {
+            if (ratio >= l.v) {
+              power = l.t;
+              break;
+            }
           }
         }
         document.getElementById("powerVal").innerText = power;
@@ -306,7 +317,9 @@
         const msgBox = document.getElementById("msgBox");
         const light = document.getElementById("statusLight");
         const evDiff =
-          Math.log2(shutter / iso) + Math.log2(apt / weatherRef) * 2;
+          Math.log2(shutter / iso) +
+          Math.log2(apt / weatherRef) * 2 +
+          Math.log2(nd);
         document.getElementById("evVal").innerText =
           `偏差: ${evDiff > 0 ? "+" : ""}${evDiff.toFixed(1)} EV`;
 
@@ -326,10 +339,23 @@
               "✅ <b>夜景平衡</b><br>环境灯光将得到保留，闪光灯负责凝固主体。";
           }
         } else if (evDiff < -1.5) {
-          // 过曝警告
           light.style.background = "var(--danger)";
           msgBox.className = "msg-card msg-danger";
-          msgBox.innerHTML = `❌ <b>背景将严重过曝！</b><br>当前环境太亮。建议缩快门至 1/${Math.round(iso * Math.pow(weatherRef / apt, 2))}s 或缩小光圈。`;
+          const rawRec = (iso * Math.pow(weatherRef / apt, 2)) / nd;
+          let finalShutterText = "";
+          if (rawRec >= 1) {
+            const stdShutters = [1, 2, 4, 8, 15, 30, 60, 125, 250, 500, 1000, 2000, 4000, 8000];
+            const closest = stdShutters.reduce((prev, curr) => {
+              return Math.abs(curr - rawRec) < Math.abs(prev - rawRec)
+                ? curr
+                : prev;
+            });
+            finalShutterText = `1/${closest}s`;
+          } else {
+            finalShutterText = `${(1 / rawRec).toFixed(1)}s`;
+          }
+
+          msgBox.innerHTML = `❌ <b>背景将严重过曝！</b><br>环境太亮。建议将快门设为 <b>${finalShutterText}</b> 或增加 ND 强度。`;
         } else {
           light.style.background = "var(--success)";
           msgBox.className = "msg-card msg-safe";
