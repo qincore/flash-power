@@ -257,20 +257,11 @@
       <div id="msgBox" class="msg-card">正在初始化...</div>
     </div>
     <script>
-      // 1. 注册 Service Worker
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          // 直接把 SW 代码写成字符串，转成 Blob 注册，这样连 sw.js 文件都不用写
-          const swCode = `
-            self.addEventListener('install', e => {
-              e.waitUntil(caches.open('pwa-v1').then(cache => cache.addAll(['./', './index.html'])));
-            });
-            self.addEventListener('fetch', e => {
-              e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
-            });
-          `;
-          const blob = new Blob([swCode], { type: "application/javascript" });
-          navigator.serviceWorker.register(URL.createObjectURL(blob));
+          navigator.serviceWorker.register("./sw.js")
+            .then(reg => console.log("Service Worker 注册成功，作用域:", reg.scope))
+            .catch(err => console.error("注册失败:", err));
         });
       }
     </script>
